@@ -11,13 +11,10 @@ int main()
         escribeListaDisco(-1,"NAC",'"NAC',0,FALSE);
     }
     menu();
-    //escribeListaDisco(-1,"hola","hola",0,FALSE);
-    //printf("------------------------------------------\n");
-    //imprimirListado();
-    /*printf("------------------------------------------\n");
-    escribeListaDisco(1,"EDITAD", "EDIT", 10, TRUE);
-    escribeListaDisco(3,"NUEVO", "EDIT", 10, TRUE);
-    imprimirListado();*/
+    /*int x = sizeof(MBR);
+    int y = sizeof(Disk);
+    int j = sizeof(datanode);
+    printf("%i\n",y);*/
 
     return 0;
 }

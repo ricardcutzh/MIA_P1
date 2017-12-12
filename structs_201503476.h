@@ -1,7 +1,7 @@
 #ifndef STRUCTS_201503476_H
 #define STRUCTS_201503476_H
 #include <cadenas_201503476.h>
-#define DISK_LIMIT 5
+#define DISK_LIMIT 10
 /* PROPOSITO DE ARCHIVO:
  * DEFINIR STRUCTS
  * DEFINIR OPERACIONES DE LECTURA Y ESCRITURA SOBRE STRUCTS
@@ -19,7 +19,7 @@ typedef struct MBR
 //STRUCT DE DATANODES
 typedef struct datanode
 {
-    string ruta;//RUTA DEL DATANODE
+    char ruta[PATH_SIZE];//RUTA DEL DATANODE
     int nodo_size_nm;//TAMANIO DEL DATANODE SIN METADATOS
     int nodo_size_ym;//TAMANIO DEL DATANODE CON METADATOS
 }datanode;
@@ -27,9 +27,9 @@ typedef struct datanode
 //STRUCTS DE NOMBRES
 typedef struct Data_nombre
 {
-    string name;//NOMBRE DEL ARCHIVO O CARPETA CREADO
+    char name[LINE_SIZE];//NOMBRE DEL ARCHIVO O CARPETA CREADO
     int type;//TIPO CARPETA O ARCHIVO
-    string date;//FECHA DE CREACION
+    char date[LINE_SIZE];//FECHA DE CREACION
     int init_block;//NUMERO HACIA EL BLOQUE INICIAL DONDE INICIA LA INFO DEL ARCHIVO
     int dnode;//DATANODE QUE ALMACENA EL BLOQUE INICIAL
     int padre;//NUMERO A ESTRUCTURA DEL DIRECTORIO PADRE, ES DECIR LA TABLA DONDE SE ENCUENTRA EL PADRE
@@ -55,10 +55,22 @@ typedef struct Disk
     int status;
 }Disk;
 
-//METODOS
-void escribeListaDisco(int index, char nombre[], char path[], int space, int status);
-void imprimirListado();
-int indexDisponible();
+//PATH GLOBAL
+char globalPath[PATH_SIZE];
+char DiscoActual[LINE_SIZE];
+
+//METODOS DE ESCRITURA Y LECTURA
+void escribeListaDisco(int index, char nombre[], char path[], int space, int status);//ESCRIBE UN DISCO EN EL LISTADO DE DISCOS
+void imprimirListado();//IMPRIME EL LISTADO DE DISCOS DISPONIBLES
+int indexDisponible();//INDEX DISPONIBLE PARA ESCRIBIR UN DISCO MAS EN LISTA
+int countDisks();//CONTAR CUANTOS DISCOS SE HAN CREADO Y EXAMINAR SI SE PUEDEN AGREGAR
+
+//MONTAR
+void montaDisco(int index);
+
+//METODOS DE ESCRIBIR ARCHIVOS DE DISCO ESPECIFICAMENTE
+//NAMENODO
+void escribeNameNode(char ruta[], int numNodes);
 
 
 #endif // STRUCTS_201503476_H
