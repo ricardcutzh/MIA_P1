@@ -5,11 +5,19 @@
 int main()
 {
     //LLAMADA A LOS METODOS QUE SE NECESITAN
-    int dispo = leeDisponible();
-    if(dispo == 0)
+    FILE *prueba = fopen("DISKS/manage.bin","r");
+    if(prueba==NULL)
     {
-        escribirDiscos(-1,"","",0,FALSE);
+        escribeListaDisco(-1,"NAC",'"NAC',0,FALSE);
     }
     menu();
+    //escribeListaDisco(-1,"hola","hola",0,FALSE);
+    //printf("------------------------------------------\n");
+    //imprimirListado();
+    /*printf("------------------------------------------\n");
+    escribeListaDisco(1,"EDITAD", "EDIT", 10, TRUE);
+    escribeListaDisco(3,"NUEVO", "EDIT", 10, TRUE);
+    imprimirListado();*/
+
     return 0;
 }

@@ -49,15 +49,16 @@ typedef struct dataBlock
 //STRUCT DE LISTADO DE DISCOS CREADOS (PERSONALIZAD PARA MONTAR Y DESMONTAR)
 typedef struct Disk
 {
-    string diskName;
-    string pathInit;
+    char diskname[LINE_SIZE];
+    char path[PATH_SIZE];
     int space;
     int status;
 }Disk;
 
-//METODOS DE ESCRITURA Y LECTURA
-void escribirDiscos(int index, string name, string path, int space, int status);
-int leeDisponible();
-void imprimeListado();
+//METODOS
+void escribeListaDisco(int index, char nombre[], char path[], int space, int status);
+void imprimirListado();
+int indexDisponible();
+
 
 #endif // STRUCTS_201503476_H

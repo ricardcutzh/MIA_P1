@@ -126,8 +126,9 @@ void crearDisco()
     printf("=======================================================\n");
     printf("||Press any key to continue...");
     getchar();
-    int index = leeDisponible();
-    escribirDiscos(index, nombre, "path", espacio, TRUE);
+    int index = indexDisponible();
+    //SOLO VA A ESCRIBIR EN LA LISTA EL NOMBRE DEL NUEVO DISCO
+    escribeListaDisco(index, nombre, "PATH", espacio, TRUE);
     //FIN DE OPCION DE CREACION DE DISCO
 }
 
@@ -137,7 +138,7 @@ void montarDisco()
     printf("=======================================================\n");
     printf("||           LISTADO DE DISCOS DISPONIBLES           ||\n");
     printf("=======================================================\n");
-    imprimeListado();
+    imprimirListado();
     printf("=======================================================\n");
     getchar();
     system("clear");
