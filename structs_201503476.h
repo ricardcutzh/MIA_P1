@@ -57,6 +57,7 @@ typedef struct Disk
 
 //PATH GLOBAL
 char globalPath[PATH_SIZE];
+char globlaDiskPath[PATH_SIZE];
 char DiscoActual[LINE_SIZE];
 
 //METODOS DE ESCRITURA Y LECTURA
@@ -71,6 +72,27 @@ void montaDisco(int index);
 //METODOS DE ESCRIBIR ARCHIVOS DE DISCO ESPECIFICAMENTE
 //NAMENODO
 void escribeNameNode(char ruta[], int numNodes);
+void escribreDataNodes(char ruta[], int numNodes, int bytes);
 
+/*-------------METODOS DE NAMENODE----------------------------------------*/
+//METODOS DE MBR
+MBR leeMBR(char ruta[]);//RECIBE LA RUTA COMPLETA DEL NAMENODE A LEER EL MBR
+
+//METODOS DE TABLA DE NODOS
+int nodTBuscaDisponible(int TPinit, char ruta[]);
+void nodTWrite(int index, int TPinit, char ruta [], int size);
+void printNodeTable(int TPinit, char ruta[]);
+
+//METODOS DE TABLA DE NOMBRES
+int nameTBuscaDisponible(int TPinit);
+void nameTWrite(int index, int TPinit, char name[], int type, char date [], int idBlock, int Padre, int estado);
+
+/*-------------METODOS DE NAMENODE----------------------------------------*/
+
+/*-------------METODOS DE DATANODE----------------------------------------*/
+void formatDataNode(char ruta [], int espacio, int numDataNode);
+void diskDataNodeReport();
+void writeNodeReport(FILE *p, int bytestotales, char na[]);
+/*-------------METODOS DE DATANODE----------------------------------------*/
 
 #endif // STRUCTS_201503476_H

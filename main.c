@@ -12,7 +12,7 @@ int main()
     }
     menu();
     /*int x = sizeof(MBR);
-    int y = sizeof(Disk);
+    int y = sizeof(dataBlock);
     int j = sizeof(datanode);
     printf("%i\n",y);*/
 

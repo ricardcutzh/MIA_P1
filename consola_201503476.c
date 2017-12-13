@@ -87,6 +87,7 @@ void menu()
             }
             else if(opc == 2)
             {
+                system("clear");
                 montarDisco();
             }
         }
@@ -159,35 +160,86 @@ void crearDisco()
 
     //ESCRIBE EL NAMENODE
     escribeNameNode(pathconc, numNodes);
+
+    //CALCULO DE BYTES
+    int bytes = toBytes(tipo, espacio);
+
+    //ESCRIBE LOS DATANODES
+    char path2[PATH_SIZE]="DISKS/";
+    strcat(path2, nombre);
+    escribreDataNodes(path2, numNodes,bytes);
+
+    //ACTUALIZAR EL MBR
+    char path3[PATH_SIZE] = "DISKS/";
+    strcat(path3, nombre);
+    strcat(path3, "/NameNode.bin");
+    MBR mbr = leeMBR(path3);
+    int n;
+    char path4[PATH_SIZE] = "DISKS/";
+    strcat(path4, nombre);
+    for(n = 0; n< numNodes; n++)//ESCRIBE LOS DATANODES DISPONIBLES POR EL DISCO
+    {
+        nodTWrite(n, mbr.mbr_t_nodes, path3, bytes);
+        //formatDataNode(path4, bytes, n);
+    }
+    for(n = 0; n< numNodes; n++)
+    {
+        formatDataNode(path4, bytes, n);
+    }
+
+
 }
 
 //MONTAR
 void montarDisco()
 {
     int opc = 0;
+    int c = countDisks()+1;
     printf("=======================================================\n");
     printf("||           LISTADO DE DISCOS DISPONIBLES           ||\n");
     printf("=======================================================\n");
     imprimirListado();
+    printf("|| SALIR %i\n",c);
     printf("=======================================================\n");
     string entrada = nuevaCadena();
     printf("|| ELIJA UNA OPCION >> ");
     gets(entrada);
     opc = atoi(entrada);
-    if(opc > countDisks())
+    if(opc == countDisks()+1)
+    {
+        printf("=======================================================\n");
+        printf("||           SALIENDO...                             ||\n");
+        printf("=======================================================\n");
+    }
+    else if(opc > countDisks())
     {
         printf("=======================================================\n");
         printf("           OPCION INVALIDA DE MONTAJE...             ||\n");
         printf("=======================================================\n");
-        printf("||Press any key to continue...");
+        printf("|| Press any key to continue...");
     }
     else
     {
+        system("clear");
         montaDisco(opc);
     }
-    printf("||Press any key to continue...");
+    printf("|| Press any key to continue...");
     getchar();
     system("clear");
+}
+
+//CONVIERTE A BYTES
+int toBytes(int tipo, int espacio)
+{
+    if(tipo == 1)
+    {
+        return 1000000*espacio;
+    }
+    if(tipo == 2)
+    {
+        return 1000*espacio;
+    }
+    return espacio;
 }
 
 #endif // CONSOLA_201503476_C

@@ -16,5 +16,6 @@ void menu();
 void crearDisco();
 //MENU MONTAR DISCO
 void montarDisco();
-
+//CONVERTIDOR A BYTES
+int toBytes(int tipo, int espacio);
 #endif // CONSOLA_201503476_H

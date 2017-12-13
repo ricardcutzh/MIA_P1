@@ -3,6 +3,7 @@
 #include<string.h>
 #include<stdlib.h>
 #include<stdio.h>
+#include<math.h>
 #define TRUE 1
 #define FALSE 0
 #define CARPETA 100
