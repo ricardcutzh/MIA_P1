@@ -1,6 +1,12 @@
 #ifndef STRUCTS_201503476_C
 #define STRUCTS_201503476_C
 #include<structs_201503476.h>
+
+//PATH GLOBAL
+char globalPath[PATH_SIZE];
+char globlaDiskPath[PATH_SIZE];
+char DiscoActual[LINE_SIZE];
+
 //ESCRIBE EL LISTADO DE DISCOS DISPONIBLES
 void escribeListaDisco(int index, char nombre[], char path[], int space, int status)
 {
@@ -132,9 +138,10 @@ void escribeNameNode(char ruta[], int numNodes)
 
     //ESCRIBIENDO TABLA DE NOMBRES
     int y = 0;
+    fseek(f,p_t_nombres,SEEK_SET);
     for(y = 0; y < 10000; y++)
     {
-        Data_nombre nom = {"NAC",-1,"NAC",-1,-1,-1,-1};
+        Data_nombre nom = {"NAC",-1,"NAC",-1,-1,-1,FALSE};
         fwrite(&nom, sizeof(Data_nombre),1,f);
     }
 
@@ -174,10 +181,74 @@ void montaDisco(int index)
             printNodeTable(mbr.mbr_t_nodes, globalPath);
             //IMPRIME REPORTE DE DATANODES DE DISCO MONTADO
             diskDataNodeReport();
+            //INICIA MENU DE DISCO MONTADO
+            menuMontado(mbr);
+            system("clear");
         }
         fclose(p);
     }
 }
+//******************MENU DE DISCO YA MONTADO******************************//
+void menuMontado(MBR mbr)
+{
+    int opc;
+    int indice = 0;
+    while(opc!=8)
+    {
+        printf("====================OPERACIONES CON DISCO===========================\n");
+        printf("|| DISCO ACTUAL: %s", globlaDiskPath);
+        printf("====================================================================\n");
+        printf("|| 1) CREAR\n");
+        printf("|| 2) ELIMINAR\n");
+        printf("|| 3) EDITAR\n");
+        printf("|| 4) COPIAR\n");
+        printf("|| 5) BUSCAR\n");
+        printf("|| 6) NAVEGAR\n");
+        printf("|| 7) REPORTES\n");
+        printf("|| 8) DESMONTAR\n");
+        printf("====================================================================\n");
+        printf("|| >> ");
+        string entrada = nuevaCadena();
+        gets(entrada);
+        opc = atoi(entrada);
+        if(opc == 1)
+        {
+            system("clear");
+            crear(mbr,globalPath, globlaDiskPath, indice);//OPERACIONES
+            //PARA CREAR
+        }
+        else if(opc == 2)
+        {
+            //PARA ELIMINAR
+        }
+        else if(opc == 3)
+        {
+            //PARA EDITAR
+        }
+        else if(opc == 4)
+        {
+            //PARA COPIAR
+        }
+        else if(opc == 5)
+        {
+            //PARA BUSCAR
+        }
+        else if(opc == 6)
+        {
+            //PARA NAVEGAR
+        }
+        else if(opc == 7)
+        {
+            //PARA GENERAR REPORTES
+            nameTablesReport();//ACTUAL
+            printf("|| REPORTES GENERADOS EN CARPETA REPORTS\n");
+            printf("|| Press any key to continue...");
+            getchar();
+        }
+        system("clear");
+    }
+}
+//****************************FIN****************************************//
 //ESCRIBE LOS DATANODES QUE TIENE EL DISCO
 void escribreDataNodes(char ruta[], int numNodes, int bytes)
 {
@@ -215,15 +286,16 @@ MBR leeMBR(char ruta[])
     //PREPARANDO RUTA
     char TempR[PATH_SIZE] = "TEMP";
     strcpy(TempR, ruta);
-
+    MBR aux;
     //ABRIENDO ARCHIVO
     FILE *f = fopen(TempR, "r");
     if(f!=NULL)
     {
-        MBR aux;
+
         fread(&aux,sizeof(MBR),1,f);
         return aux;
     }
+    return aux;
 }
 //TABLA DE NODOS
 int nodTBuscaDisponible(int TPinit, char ruta[])
@@ -255,6 +327,7 @@ int nodTBuscaDisponible(int TPinit, char ruta[])
     {
         return -1;
     }
+    return -1;
 }
 //ESCRIBIR EL NODO EN TABLA DE NODOS
 void nodTWrite(int index, int TPinit, char ruta[], int size)
@@ -414,5 +487,33 @@ void writeNodeReport(FILE *p, int bytestotales, char na[])
     //CERRANDO
     fprintf(p, "*********************************************************************************************************************\n");
     fclose(f);
+}
+
+void nameTablesReport()
+{
+    FILE *f = fopen(globalPath, "r");
+    FILE *txt = fopen("REPORTS/reporteTablaNombres.txt", "w");
+    fprintf(txt, "===================================================================================================================\n");
+    fprintf(txt,"||  REPORTE TABLA DE NOMBRES DE DISCO: %s\n", globlaDiskPath);
+    fprintf(txt, "===================================================================================================================\n");
+    MBR mbr;
+    fread(&mbr, sizeof(MBR), 1, f);
+    int x;
+    for(x = 0; x < 1000; x++)
+    {
+        int dispo = estaDisponibleTabla(mbr.mbr_t_names + (x*sizeof(Data_nombre)*10),globalPath);
+        if(dispo == FALSE)
+        {
+            fprintf(txt, "***********************************************************************************************************************\n");
+            fprintf(txt, "TABLA NO: %i\n", x);
+            fprintf(txt, "***********************************************************************************************************************\n");
+            escribeReporteNobres(x,txt,mbr,f);//OPERACIONES
+            fprintf(txt, "***********************************************************************************************************************\n");
+        }
+    }
+    fprintf(txt, "===================================================================================================================\n");
+    fclose(f);
+    fclose(txt);
+
 }
 #endif // STRUCTS_201503476_C

@@ -2,10 +2,11 @@
 #include<cadenas_201503476.h>
 #include<consola_201503476.h>
 #include<structs_201503476.h>
+#include<time.h>
 int main()
 {
     //LLAMADA A LOS METODOS QUE SE NECESITAN
-    FILE *prueba = fopen("DISKS/manage.bin","r");
+   FILE *prueba = fopen("DISKS/manage.bin","r");
     if(prueba==NULL)
     {
         escribeListaDisco(-1,"NAC",'"NAC',0,FALSE);
@@ -14,7 +15,13 @@ int main()
     /*int x = sizeof(MBR);
     int y = sizeof(dataBlock);
     int j = sizeof(datanode);
-    printf("%i\n",y);*/
+    printf("%i\n",y);
+    time_t t;
+    time(&t);
 
+
+
+    printf("Today's date and time : %s",ctime(&t));
+    getchar();*/
     return 0;
 }
