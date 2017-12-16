@@ -52,5 +52,10 @@ int cadenaSize(string cadena)
     return x;
 }
 
+int randomGen(int from, int to)
+{
+    int r = from + (rand()%to);
+    return r;
+}
 
 #endif // CADENAS_201503476_C

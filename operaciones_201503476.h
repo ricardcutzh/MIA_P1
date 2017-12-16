@@ -23,5 +23,13 @@ void buscaCarpetaParaAmbito(int indice, char rutaGlopb[], char mod[]);//ESTE MET
 void escribeReporteNobres(int x, FILE *f, MBR mbr, FILE *lee);
 /*-------------REPORTE DE NOMBRES ----------------------------------------*/
 
-
+/*****************************************************************/
+int countDiskDataNodes(MBR mbr, char ruta[]);
+int escribeArchivo(int indice, char rutaglob[], MBR mbr, char contenido[], int tipoRuta, char rutaSinDataNode[], char rutaCreacion[], char nombre[]);
+int buscaIDBloque(char rutaSinData[], int numeroDataNode);
+void escribeDatablock(char rutaSinData[], int numerDatanode, dataBlock bloque);
+void escribeDatanombre(char rutaglob[], int indice, Data_nombre nom, MBR mbr);
+void separandoContenido(char contenido[], char tempora[], int inicio, int final);
+void emptyArray(char cadena[]);
+/*****************************************************************/
 #endif // OPERACIONES_201503476_H

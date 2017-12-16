@@ -9,6 +9,8 @@
 #define CARPETA 100
 #define ARCHIVO 101
 #define BANDERA 809
+#define ENDFILE 404
+#define CONTENIDO 300;
 //DEFINICION DEL SIZE DEL ARREGLO DE CHAR PARA SIMULAR STRINGS
 #define LINE_SIZE 20
 #define PATH_SIZE 50
@@ -22,6 +24,6 @@ string quitaEspacios(string cadena);
 string nuevaCadena();
 void pasameAMinuscula(string cadena);
 int cadenaSize(string cadena);
-
+int randomGen(int from, int to);
 
 #endif // CADENAS_201503476_H

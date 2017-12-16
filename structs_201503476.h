@@ -54,4 +54,6 @@ void writeNodeReport(FILE *p, int bytestotales, char na[]);
 void nameTablesReport();
 /*-------------REPORTE DE NOMBRES ----------------------------------------*/
 
+
+
 #endif // STRUCTS_201503476_H

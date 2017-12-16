@@ -297,6 +297,8 @@ void menuMontado(MBR mbr)
         {
             //PARA GENERAR REPORTES
             nameTablesReport();//ACTUAL
+            diskDataNodeReport();
+            printNodeTable(mbr.mbr_t_nodes, globalPath);
             printf("|| REPORTES GENERADOS EN CARPETA REPORTS\n");
             printf("|| Press any key to continue...");
             getchar();

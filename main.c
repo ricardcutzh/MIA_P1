@@ -6,7 +6,7 @@
 int main()
 {
     //LLAMADA A LOS METODOS QUE SE NECESITAN
-   FILE *prueba = fopen("DISKS/manage.bin","r");
+    FILE *prueba = fopen("DISKS/manage.bin","r");
     if(prueba==NULL)
     {
         escribeListaDisco(-1,"NAC",'"NAC',0,FALSE);
@@ -20,8 +20,12 @@ int main()
     time(&t);
 
 
-
     printf("Today's date and time : %s",ctime(&t));
     getchar();*/
+    /*int x;
+    for(x = 0; x< 10;x++)
+    {
+        printf("%d \n",randomGen(1,4));
+    }*/
     return 0;
 }

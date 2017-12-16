@@ -1,6 +1,7 @@
 #ifndef OPERACIONES_201503476_C
 #define OPERACIONES_201503476_C
 #include<operaciones_201503476.h>
+#include<math.h>
 #include<time.h>
 
 void crear(MBR mbr, char rglob[], char rdiskGlobal[], int indiceTabla)
@@ -29,7 +30,15 @@ void crear(MBR mbr, char rglob[], char rdiskGlobal[], int indiceTabla)
     if(strcmp(tipo, "A")==0)//TIPO DE FILE
     {
         //ARCHIVO
-        rdiskGlobal = "joads";
+        printf("|| CONTENIDO DEL ARCHIVO: >> ");
+        char con[200];
+        gets(con);
+        int res = escribeArchivo(indiceTabla, rglob, mbr, con, type, rdiskGlobal, p,name);
+        if(res == TRUE)
+        {
+            printf("|| ARCHIVO CREADO CON EXITO!\n");
+            getchar();
+        }
     }
     else if(strcmp(tipo, "D")==0)
     {
@@ -413,4 +422,266 @@ void buscaCarpetaParaAmbito(int indice, char rutaGlopb[], char mod[])
         fclose(f);
     }
 }
+
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*/
+//ARCHIVOS MENEJO
+int countDiskDataNodes(MBR mbr, char ruta[])//RETORNA EL NUMERO DE DATANODES
+{
+    FILE *f = fopen(ruta,"r");
+    if(f!=NULL)
+    {
+        fseek(f, mbr.mbr_t_nodes, SEEK_SET);
+        int count  = 0;
+        int x;
+        for(x = 0; x<10;x++)
+        {
+            datanode aux;
+            fread(&aux, sizeof(datanode), 1, f);
+            if(aux.nodo_size_nm!=-1)
+            {
+                count++;
+            }
+        }
+        fclose(f);
+        return count;
+    }
+    return 0;
+}
+int escribeArchivo(int indice, char rutaglob[], MBR mbr, char contenido[], int tipoRuta, char rutaSinDataNode[], char rutaCreacion[], char nombre[])
+{
+    if(strcmp(rutaCreacion,"NAC")!=0)//SI LA RUTA NO ES NAC
+    {
+        if(tipoRuta !=1)
+        {
+            indice = 0;
+        }
+        char cadenaaux[PATH_SIZE] = "";
+        int lenght = strlen(rutaCreacion);
+        int x;
+        int ban = 0;
+        for(x = 0; x< lenght; x++)
+        {
+            if(rutaCreacion[x]=='/' || rutaCreacion[x]=='\0')//SI EL CARACTER NO ES SLASH O FINALIZACION
+            {
+                //BUSCAR Y LIMPIAR
+                int p = mbr.mbr_t_names + (indice * sizeof(Data_nombre)*10);//CALCULO EL PUNTERO
+                int puntero = buscaPunteroDeCarpeta(p,rutaglob, cadenaaux, SEEK_SET);
+                if(puntero!= -1)
+                {
+                    indice = (puntero - mbr.mbr_t_names)/(sizeof(Data_nombre)*10);
+                }
+                else
+                {
+                    //SI NO ENCUENTRO ENTONCES ROMPO EL CICLO Y LO IGUALO A MENOS 1 PARA INDICAR EL ERROR
+                    indice = -1;
+
+                    return FALSE;
+                }
+                int cx;
+                for(cx = 0; cx<PATH_SIZE; cx++)
+                {
+                    cadenaaux[cx] = '\0';
+                }
+                ban = 0;
+            }
+            else
+            {
+                cadenaaux[ban] = rutaCreacion[x]; //HAS LA NUEVA CADENA
+                ban++;
+
+            }
+        }
+        //EN ESTE PUNTO YA TENGO EL INDICE
+        //EN ESTE PUNTO YA TENGO EL INDICE
+        int qdatanodes = mbr.mbr_c_nodes;
+        int qblocks = floor(strlen(contenido)/50)+1;
+        dataBlock bloques[qblocks];
+        int numDataNode[qblocks];
+        int xc;
+        for(xc = 0; xc< qblocks;xc++)
+        {
+            numDataNode[xc] = randomGen(1,qdatanodes);
+            dataBlock aux;
+            char temp[50] = "";
+            emptyArray(temp);
+            separandoContenido(contenido, temp, 50*xc, 50+(xc*50));
+            strcpy(aux.bd_data, temp);//AUN TENGO QUE DIVIDIR EL CONTENIDO
+            aux.id = 1 + buscaIDBloque(rutaSinDataNode, numDataNode[xc]);
+            aux.NdataNode = numDataNode[xc];
+            aux.state = TRUE;
+            bloques[xc] = aux;
+            emptyArray(temp);
+        }
+        //CREO EL REGISTRO DE NOMBRE PARA TABLA
+        Data_nombre nuevo;
+        time_t t;
+        time(&t);
+        strcpy(nuevo.date, ctime(&t));
+        nuevo.dnode = numDataNode[0];
+        nuevo.init_block = bloques[0].id;//RECUERDA QUE ES ID - 1
+        strcpy(nuevo.name, nombre);
+        nuevo.padre = mbr.mbr_t_names + (indice*sizeof(Data_nombre)*10);
+        nuevo.state = TRUE;
+        nuevo.type = ARCHIVO;
+        int v;
+        for(v = 0; v< qblocks; v++)
+        {
+            if(v!= (qblocks-1))
+            {
+                bloques[v].next = bloques[v+1].id;
+                bloques[v].NdataNode = bloques[v+1].NdataNode;
+            }
+            else
+            {
+                bloques[v].next = -1;
+                bloques[v].NdataNode = -1;
+            }
+            escribeDatablock(rutaSinDataNode, numDataNode[v], bloques[v]);
+        }
+        escribeDatanombre(rutaglob, indice, nuevo, mbr);
+        return TRUE;
+    }
+    else
+    {
+        //EN ESTE PUNTO YA TENGO EL INDICE
+        int qdatanodes = mbr.mbr_c_nodes;
+        int qblocks = floor(strlen(contenido)/50)+1;
+        dataBlock bloques[qblocks];
+        int numDataNode[qblocks];
+        int xc;
+        for(xc = 0; xc< qblocks;xc++)
+        {
+            numDataNode[xc] = randomGen(1,qdatanodes);
+            dataBlock aux;
+            char temp[50] = "";
+            emptyArray(temp);
+            separandoContenido(contenido, temp, 50*xc, 50+(xc*50));
+            strcpy(aux.bd_data, temp);//AUN TENGO QUE DIVIDIR EL CONTENIDO
+            aux.id = 1 + buscaIDBloque(rutaSinDataNode, numDataNode[xc]);
+            aux.NdataNode = numDataNode[xc];
+            aux.state = TRUE;
+            bloques[xc] = aux;
+            emptyArray(temp);
+        }
+        //CREO EL REGISTRO DE NOMBRE PARA TABLA
+        Data_nombre nuevo;
+        time_t t;
+        time(&t);
+        strcpy(nuevo.date, ctime(&t));
+        nuevo.dnode = numDataNode[0];
+        nuevo.init_block = bloques[0].id;//RECUERDA QUE ES ID - 1
+        strcpy(nuevo.name, nombre);
+        nuevo.padre = mbr.mbr_t_names + (indice*sizeof(Data_nombre)*10);
+        nuevo.state = TRUE;
+        nuevo.type = ARCHIVO;
+        int v;
+        for(v = 0; v< qblocks; v++)
+        {
+            if(v!= (qblocks-1))
+            {
+                bloques[v].next = bloques[v+1].id;
+                bloques[v].NdataNode = bloques[v+1].NdataNode;
+            }
+            else
+            {
+                bloques[v].next = -1;
+                bloques[v].NdataNode = -1;
+            }
+            escribeDatablock(rutaSinDataNode, numDataNode[v], bloques[v]);
+        }
+        escribeDatanombre(rutaglob, indice, nuevo, mbr);
+        return TRUE;
+    }
+}
+int buscaIDBloque(char rutaSinData[], int numeroDataNode)
+{
+    char route[PATH_SIZE];
+    strcpy(route, rutaSinData);
+    strcat(route, "/DataNode");
+    char temp[2];
+    sprintf(temp, "%d", numeroDataNode);
+    strcat(route, temp);
+    strcat(route, ".bin");
+    int index = 0;
+    FILE *f = fopen(route, "r");
+    if(f!=NULL)
+    {
+        fseek(f, 0, SEEK_END);
+        int filesize = ftell(f);
+        rewind(f);
+        int maxBlocks = floor(filesize/sizeof(dataBlock));
+        int x;
+        for(x = 0; x<maxBlocks; x++)
+        {
+            dataBlock aux;
+            fread(&aux, sizeof(dataBlock), 1, f);
+            if(aux.state == FALSE)
+            {
+                break;
+            }
+            index++;
+        }
+        fclose(f);
+        return index;
+    }
+    return index;
+}
+void escribeDatablock(char rutaSinData[], int numerDatanode, dataBlock bloque)
+{
+    char route[PATH_SIZE];
+    strcpy(route, rutaSinData);
+    strcat(route, "/DataNode");
+    char temp[2];
+    sprintf(temp, "%d", numerDatanode);
+    strcat(route, temp);
+    strcat(route, ".bin");
+
+    FILE *f = fopen(route, "r+");
+    if(f!=NULL)
+    {
+        fseek(f,(bloque.id-1)*sizeof(dataBlock), SEEK_SET);
+        fwrite(&bloque, sizeof(dataBlock), 1, f);
+        fclose(f);
+    }
+}
+void escribeDatanombre(char rutaglob[], int indice, Data_nombre nom, MBR mbr)
+{
+    int punt = mbr.mbr_t_names + (indice * sizeof(Data_nombre)*10);
+    FILE *f = fopen(rutaglob, "r+");
+    if(f!=NULL)
+    {
+        int index = buscaIndexDisponible(punt, rutaglob);
+        fseek(f,punt + (index * sizeof(Data_nombre)), SEEK_SET);
+        fwrite(&nom, sizeof(Data_nombre), 1, f);
+        fclose(f);
+    }
+}
+void separandoContenido(char contenido[], char tempora[], int inicio, int final)
+{
+    int x;
+    int index = 0;
+    for(x = inicio; x <final; x++)
+    {
+        if(contenido[x]!='\0')
+        {
+            tempora[index] = contenido[x];
+            index++;
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+void emptyArray(char cadena[])
+{
+    int len = strlen(cadena);
+    int x;
+    for(x = 0; x< len; x++)
+    {
+        cadena[x] = '\0';
+    }
+}
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*/
+
 #endif // OPERACIONES_201503476_C
