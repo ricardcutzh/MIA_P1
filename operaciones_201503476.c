@@ -31,7 +31,7 @@ void crear(MBR mbr, char rglob[], char rdiskGlobal[], int indiceTabla)
     {
         //ARCHIVO
         printf("|| CONTENIDO DEL ARCHIVO: >> ");
-        char con[200];
+        char con[500];//cantidad de caracteres del mensaje
         gets(con);
         int res = escribeArchivo(indiceTabla, rglob, mbr, con, type, rdiskGlobal, p,name);
         if(res == TRUE)
@@ -57,6 +57,50 @@ void crear(MBR mbr, char rglob[], char rdiskGlobal[], int indiceTabla)
 
     }
     printf("===============================================================\n");
+}
+//ELIMINAR
+void eliminar(MBR mbr, char rglob[], char rdiskGlobal[], int indice)
+{
+    printf("===============================================================\n");
+    printf("||                      ELIMINAR                             ||\n");
+    printf("===============================================================\n");
+    printf("|| TIPO DIRECTORIO(D) O ARCHIVO: (A): >> ");
+    char tipo[2];
+    gets(tipo);
+    printf("|| TIPO DE RUTA RELATIVA(R) O ABSOLUTA(A): >> ");
+    char tipoR[2];
+    gets(tipoR);
+    printf("|| NOMBRE: >> ");
+    char name[LINE_SIZE];
+    gets(name);
+    printf("|| RUTA: >> ");
+    char p[PATH_SIZE];
+    gets(p);
+    int type = 1;
+    if(strcmp(tipoR, "A")==0)//TIPO DE RUTA
+    {
+        type = 2;//SI LA RUTA ES ABSOLUTLA
+    }
+    if(strcmp(tipo, "A")==0)//TIPO DE FILE
+    {
+        //ARCHIVO
+        //buscaContenidoDeArchivo(indice, rglob, mbr, type, p, name, rdiskGlobal);
+        eliminaArchivo(indice, rglob, mbr, type, p,name,rdiskGlobal);
+    }
+    else if(strcmp(tipo, "D")==0)
+    {
+        //DIRECTORIO
+        eliminaCarpeta(indice, rglob, mbr, type, p, name, rdiskGlobal);
+    }
+
+}
+//EDITAR
+void editar(MBR mbr, char rglob[], char rdiskGlobal[], int indice)
+{
+    printf("===============================================================\n");
+    printf("||                     EDITAR ARCHIVOS                       ||\n");
+    printf("===============================================================\n");
+    printf("|| TIPO DIRECTORIO(D) O ARCHIVO: (A): >> ");
 }
 
 int creameCarpeta(MBR mbr, char rutaGlob[], char path[], int indice, int typeRoute, char name[])//ESTE RECIBE INDICE DE TABLA COMO UN ARREGLO (0,1,2...)
@@ -492,7 +536,6 @@ int escribeArchivo(int indice, char rutaglob[], MBR mbr, char contenido[], int t
             }
         }
         //EN ESTE PUNTO YA TENGO EL INDICE
-        //EN ESTE PUNTO YA TENGO EL INDICE
         int qdatanodes = mbr.mbr_c_nodes;
         int qblocks = floor(strlen(contenido)/50)+1;
         dataBlock bloques[qblocks];
@@ -511,6 +554,14 @@ int escribeArchivo(int indice, char rutaglob[], MBR mbr, char contenido[], int t
             aux.state = TRUE;
             bloques[xc] = aux;
             emptyArray(temp);
+            //ESTE ES PARA MARCAR EL ESPACIO PARA RESERVARLOS
+            dataBlock temp1;
+            strcpy(temp1.bd_data, "MARCADO");
+            temp1.id = aux.id;
+            temp1.NdataNode = numDataNode[xc];
+            temp1.next = -1;
+            temp1.state = TRUE;
+            escribeDatablock(rutaSinDataNode, numDataNode[xc],temp1);
         }
         //CREO EL REGISTRO DE NOMBRE PARA TABLA
         Data_nombre nuevo;
@@ -562,6 +613,14 @@ int escribeArchivo(int indice, char rutaglob[], MBR mbr, char contenido[], int t
             aux.state = TRUE;
             bloques[xc] = aux;
             emptyArray(temp);
+            //PARA MARCAR ESPACIO
+            dataBlock temp1;
+            strcpy(temp1.bd_data, "MARCADO");
+            temp1.id = aux.id;
+            temp1.NdataNode = numDataNode[xc];
+            temp1.next = -1;
+            temp1.state = TRUE;
+            escribeDatablock(rutaSinDataNode, numDataNode[xc],temp1);
         }
         //CREO EL REGISTRO DE NOMBRE PARA TABLA
         Data_nombre nuevo;
@@ -680,6 +739,261 @@ void emptyArray(char cadena[])
     for(x = 0; x< len; x++)
     {
         cadena[x] = '\0';
+    }
+}
+int devuelvemeIndiceDeRuta(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[])
+{
+    if(strcmp(rutaCreacion, "NAC")!=0)
+    {
+        if(tipoRuta !=1)
+        {
+            indice = 0;
+        }
+        char cadenaaux[PATH_SIZE] = "";
+        int lenght = strlen(rutaCreacion);
+        int x;
+        int ban = 0;
+        for(x = 0; x< lenght; x++)
+        {
+            if(rutaCreacion[x]=='/' || rutaCreacion[x]=='\0')//SI EL CARACTER NO ES SLASH O FINALIZACION
+            {
+                //BUSCAR Y LIMPIAR
+                int p = mbr.mbr_t_names + (indice * sizeof(Data_nombre)*10);//CALCULO EL PUNTERO
+                int puntero = buscaPunteroDeCarpeta(p,rutaglob, cadenaaux, SEEK_SET);
+                if(puntero!= -1)
+                {
+                    indice = (puntero - mbr.mbr_t_names)/(sizeof(Data_nombre)*10);
+                }
+                else
+                {
+                    //SI NO ENCUENTRO ENTONCES ROMPO EL CICLO Y LO IGUALO A MENOS 1 PARA INDICAR EL ERROR
+                    indice = -1;
+
+                    return FALSE;
+                }
+                int cx;
+                for(cx = 0; cx<PATH_SIZE; cx++)
+                {
+                    cadenaaux[cx] = '\0';
+                }
+                ban = 0;
+            }
+            else
+            {
+                cadenaaux[ban] = rutaCreacion[x]; //HAS LA NUEVA CADENA
+                ban++;
+
+            }
+        }
+        return indice;
+    }
+    else
+    {
+        return indice;
+    }
+}
+dataBlock buscameDataBlock(char rutaSinDataNode[], int numBloque, int numNode)
+{
+    char route[PATH_SIZE];
+    strcpy(route, rutaSinDataNode);
+    strcat(route, "/DataNode");
+    char temp[2];
+    sprintf(temp, "%d", numNode);
+    strcat(route, temp);
+    strcat(route, ".bin");
+    dataBlock nuevo;
+    FILE *f = fopen(route, "r");
+    if(f!=NULL)
+    {
+        fseek(f,(numBloque-1)*sizeof(dataBlock),SEEK_SET);
+        fread(&nuevo, sizeof(dataBlock),1,f);
+        fclose(f);
+    }
+    return nuevo;
+}
+void eliminaDataBlock(char rutaSinDataNode[], int numBloque, int numNode)
+{
+    char route[PATH_SIZE];
+    strcpy(route, rutaSinDataNode);
+    strcat(route, "/DataNode");
+    char temp[2];
+    sprintf(temp, "%d", numNode);
+    strcat(route, temp);
+    strcat(route, ".bin");
+    dataBlock eliminar;
+    FILE *f = fopen(route, "r+");
+    if(f!=NULL)
+    {
+        strcpy(eliminar.bd_data, "EMPTY");
+        eliminar.id = numBloque;
+        eliminar.NdataNode = -1;
+        eliminar.next = -1;
+        eliminar.state = FALSE;
+        fseek(f,(numBloque-1)*sizeof(dataBlock), SEEK_SET);
+        fwrite(&eliminar, sizeof(dataBlock),1,f);
+        fclose(f);
+    }
+}
+Data_nombre buscaDataNombre(int PTinit, char nombre[], char rutaglob[])
+{
+    Data_nombre aux;
+    FILE *f = fopen(rutaglob, "r");
+    if(f!=NULL)
+    {
+        int x;
+        for(x = 0; x < 10; x++)
+        {
+            Data_nombre temp;
+            fseek(f, PTinit+(x*sizeof(Data_nombre)), SEEK_SET);
+            fread(&temp, sizeof(Data_nombre),1,f);
+            if(strcmp(temp.name, nombre)==0)
+            {
+                aux = temp;
+                break;
+            }
+        }
+        fclose(f);
+    }
+    return aux;
+}
+void eliminaDataNombre(int PTinit, char nombre[], char rutaglob[])
+{
+    Data_nombre eliminar;
+    strcpy(eliminar.date, "EMPTY");
+    eliminar.state = FALSE;
+    eliminar.dnode = -1;
+    eliminar.init_block = -1;
+    strcpy(eliminar.name, "EMPTY");
+    eliminar.padre = -1;
+    eliminar.state = FALSE;
+    eliminar.type = -1;
+    FILE *f = fopen(rutaglob, "r+");
+    if(f!=NULL)
+    {
+        int index=0;
+        int bandera = FALSE;
+        int x;
+        for(x = 0; x < 10; x++)
+        {
+            Data_nombre temp;
+            fseek(f, PTinit+(x*sizeof(Data_nombre)), SEEK_SET);
+            fread(&temp, sizeof(Data_nombre),1,f);
+            if(strcmp(temp.name, nombre)==0)
+            {
+                bandera = TRUE;
+                break;
+            }
+            index ++;
+        }
+        if(bandera == TRUE)
+        {
+            fseek(f, PTinit+(index*sizeof(Data_nombre)), SEEK_SET);
+            fwrite(&eliminar, sizeof(Data_nombre), 1, f);
+        }
+        fclose(f);
+    }
+}
+void buscaContenidoDeArchivo(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[], char nombreFile[], char rutaSinDataNode[])
+{
+    //ENCONTRARE EL INDICE INDICADO
+    indice = devuelvemeIndiceDeRuta(indice, rutaglob, mbr, tipoRuta, rutaCreacion);
+
+    //ENCUENTRO EL DATANOMBRE QUE BUSCO
+    int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*indice*10);
+    Data_nombre auxi = buscaDataNombre(pt, nombreFile, rutaglob);
+    int next = auxi.init_block;
+    int node = auxi.dnode;
+    char contenido[200];//CONTENIDO
+    emptyArray(contenido);
+    while(next!=-1)
+    {
+        dataBlock temp = buscameDataBlock(rutaSinDataNode, next, node);
+        strcat(contenido, temp.bd_data);
+        next = temp.next;
+        node = temp.NdataNode;
+    }
+    printf("|| CONTENIDO DE ARCHIVO: %s\n", contenido);
+    getchar();
+    //
+}
+void eliminaArchivo(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[], char nombreFile[], char rutaSinDataNode[])
+{
+    //ENCONTRARE EL INDICE INDICADO
+    indice = devuelvemeIndiceDeRuta(indice, rutaglob, mbr, tipoRuta, rutaCreacion);
+
+    //ENCUENTRO EL DATANOMBRE QUE BUSCO
+    int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*indice*10);
+    Data_nombre auxi = buscaDataNombre(pt, nombreFile, rutaglob);
+    int next = auxi.init_block;
+    int node = auxi.dnode;
+    while(next!=-1)
+    {
+        dataBlock temp = buscameDataBlock(rutaSinDataNode, next, node);
+        eliminaDataBlock(rutaSinDataNode, next, node);
+        next = temp.next;
+        node = temp.NdataNode;
+
+    }
+    eliminaDataNombre(pt, nombreFile, rutaglob);
+    printf("|| ARCHIVO ELIMINADO.... \n");
+    getchar();
+}
+void eliminaCarpeta(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[], char nombreFile[], char rutaSinDataNode[])
+{
+    //ENCONTRAR EL INDICE INDICADO
+    indice = devuelvemeIndiceDeRuta(indice, rutaglob, mbr, tipoRuta, rutaCreacion);
+
+    //ENTCONTRAR EL DATANOMBRE QUE BUSCO
+    int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*indice*10);
+    Data_nombre auxi = buscaDataNombre(pt,nombreFile, rutaglob);
+
+    //AQUI YA OBTENGO SU PUNTERO PARA PODER ELIMINARLO EN EL METODO DE ELIMINAR TODO LO QUE TIENE
+    int nIndice = (auxi.init_block-mbr.mbr_t_names)/(sizeof(Data_nombre)*10);
+    eliminaContenidoCarpeta(nIndice, rutaglob, mbr, rutaSinDataNode);
+    eliminaDataNombre(pt, auxi.name, rutaglob);
+    printf("|| DIRECTORIO Y SUBDIRECTORIOS ELIMINADOS...\n");
+    getchar();
+}
+
+void eliminaContenidoCarpeta(int indice, char rutaglob[], MBR mbr, char rutaSinData[])
+{
+    int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*10*indice);
+    FILE *f = fopen(rutaglob, "r+");
+    if(f!=NULL)
+    {
+        int x;
+        for(x = 0; x<10; x++)
+        {
+            Data_nombre aux;
+            fseek(f, pt+(x*sizeof(Data_nombre)),SEEK_SET);
+            fread(&aux, sizeof(Data_nombre), 1, f);
+            if(aux.state == TRUE)//SI ESTA OCUPADA
+            {
+                if(aux.type == CARPETA)
+                {
+                    //LLAMADA RECURSIVA AL ELIMINAR
+                    int nIndice = (aux.init_block - mbr.mbr_t_names)/(sizeof(Data_nombre)*10);
+                    eliminaContenidoCarpeta(nIndice, rutaglob, mbr, rutaSinData);
+                }
+                else if(aux.type == ARCHIVO)
+                {
+                    //LLAMO A ALIMINAR ARCHIVO
+                    eliminaArchivo(indice,rutaglob, mbr,1,"NAC", aux.name,rutaSinData);
+                }
+                fseek(f, pt+(x*sizeof(Data_nombre)),SEEK_SET);
+                Data_nombre eliminar;
+                strcpy(eliminar.date, "EMPTY");
+                eliminar.state = FALSE;
+                eliminar.dnode = -1;
+                eliminar.init_block = -1;
+                strcpy(eliminar.name, "EMPTY");
+                eliminar.padre = -1;
+                eliminar.state = FALSE;
+                eliminar.type = -1;
+                fwrite(&eliminar, sizeof(Data_nombre), 1, f);
+            }
+        }
+        fclose(f);
     }
 }
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*/

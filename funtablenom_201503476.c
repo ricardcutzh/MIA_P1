@@ -42,10 +42,10 @@ void marcaTablaOcupada(int PTinit, char ruta[])
     {
         fseek(f, PTinit, SEEK_SET);
         Data_nombre aux;
-        strcpy(aux.name, "NAC");
+        strcpy(aux.name, "EMPTY");
         aux.type = BANDERA;
         aux.dnode = -1;
-        strcpy(aux.date,"NAC");
+        strcpy(aux.date,"EMPTY");
         aux.init_block = -1;
         aux.padre = -1;
         aux.state = TRUE;

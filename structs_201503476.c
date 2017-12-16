@@ -228,6 +228,8 @@ void menuMontado(MBR mbr)
         else if(opc == 2)
         {
             //PARA ELIMINAR
+            system("clear");
+            eliminar(mbr, globalPath, globlaDiskPath, indice);
         }
         else if(opc == 3)
         {
@@ -549,6 +551,7 @@ void writeNodeReport(FILE *p, int bytestotales, char na[])
         dataBlock aux;
         fread(&aux, sizeof(dataBlock), 1, f);
         fprintf(p,"|| IDBLOCK: %i || NEXT_INFO_BLOCK: %i || NUM_DATANODE: %i || STATE: %i || INFO: %s \n", aux.id, aux.next, aux.NdataNode, aux.state, aux.bd_data);
+        fprintf(p, "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
     }
     //CERRANDO
     fprintf(p, "*********************************************************************************************************************\n");

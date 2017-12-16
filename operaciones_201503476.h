@@ -18,7 +18,10 @@ char nombreDir(int PTinit, char ruta[], int indiceBuscado);
 void navegar(char pathBuscar[], int indice,List *ambito, MBR mbr, char rutaGlob[]);
 
 void buscaCarpetaParaAmbito(int indice, char rutaGlopb[], char mod[]);//ESTE METODO MODIFICA EL MOD
-
+//ELIMINAR
+void eliminar(MBR mbr, char rglob[], char rdiskGlobal[], int indice);
+//EDITAR
+void editar(MBR mbr, char rglob[], char rdiskGlobal[], int indice);
 /*-------------REPORTE DE NOMBRES ----------------------------------------*/
 void escribeReporteNobres(int x, FILE *f, MBR mbr, FILE *lee);
 /*-------------REPORTE DE NOMBRES ----------------------------------------*/
@@ -31,5 +34,16 @@ void escribeDatablock(char rutaSinData[], int numerDatanode, dataBlock bloque);
 void escribeDatanombre(char rutaglob[], int indice, Data_nombre nom, MBR mbr);
 void separandoContenido(char contenido[], char tempora[], int inicio, int final);
 void emptyArray(char cadena[]);
+int devuelvemeIndiceDeRuta(int indice, char rutaglob[],MBR mbr, int tipoRuta, char rutaCreacion[]);
+dataBlock buscameDataBlock(char rutaSinDataNode[], int numBloque, int numNode);
+void eliminaDataBlock(char rutaSinDataNode[], int numBloque, int numNode);
+void buscaContenidoDeArchivo(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[], char nombreFile[], char rutaSinDataNode[]);
+void eliminaArchivo(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[], char nombreFile[], char rutaSinDataNode[]);
+Data_nombre buscaDataNombre(int PTinit, char nombre[], char rutaglob[]);
+void eliminaDataNombre(int PTinit, char nombre[], char rutaglob[]);
+//----------------------------------------------------------------//
+void eliminaCarpeta(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[], char nombreFile[], char rutaSinDataNode[]);
+void eliminaContenidoCarpeta(int indice , char rutaglob[], MBR mbr, char rutaSinData[]);
+/*************************************************************************************/
 /*****************************************************************/
 #endif // OPERACIONES_201503476_H
