@@ -6,6 +6,7 @@
 char globalPath[PATH_SIZE];
 char globlaDiskPath[PATH_SIZE];
 char DiscoActual[LINE_SIZE];
+List *ambito;
 
 //ESCRIBE EL LISTADO DE DISCOS DISPONIBLES
 void escribeListaDisco(int index, char nombre[], char path[], int space, int status)
@@ -192,11 +193,17 @@ void montaDisco(int index)
 void menuMontado(MBR mbr)
 {
     int opc;
-    int indice = 0;
-    while(opc!=8)
+    int indice = 0;//ES EL PUNTERO DONDE ESTOY ACTUALMENTE
+    char di[LINE_SIZE]= "ROOT";
+    ambito = newList();//ESTA ESTRUCTURA SOLO ES PARA AYUDARME A MOVERME ENTRE AMBITOS || ADEMAS ES COMPLETAMENTE IMPLEMENTADA POR MI
+    nodo *n = newNodo();
+    n->valor = indice;
+    push(ambito, n);
+    while(opc!=9)
     {
         printf("====================OPERACIONES CON DISCO===========================\n");
-        printf("|| DISCO ACTUAL: %s", globlaDiskPath);
+        printf("|| DISCO ACTUAL: %s\n", globlaDiskPath);
+        printf("|| DIRECTORIO ACTUAL: %s\n", di);
         printf("====================================================================\n");
         printf("|| 1) CREAR\n");
         printf("|| 2) ELIMINAR\n");
@@ -205,7 +212,8 @@ void menuMontado(MBR mbr)
         printf("|| 5) BUSCAR\n");
         printf("|| 6) NAVEGAR\n");
         printf("|| 7) REPORTES\n");
-        printf("|| 8) DESMONTAR\n");
+        printf("|| 8) LISTAR DIR ACTUAL\n");
+        printf("|| 9) DESMONTAR\n");
         printf("====================================================================\n");
         printf("|| >> ");
         string entrada = nuevaCadena();
@@ -236,6 +244,54 @@ void menuMontado(MBR mbr)
         else if(opc == 6)
         {
             //PARA NAVEGAR
+            char nav[PATH_SIZE] = "";
+            printf("|| RUTA A POSICIONARSE: >> ");
+            gets(nav);
+            if(strcmp(nav, "..")==0)
+            {
+                //AQUI SI QUIERO SUBIR DE NIVEL
+                if(ambito->sz>1)
+                {
+                    nodo *aux = pop(ambito);
+                    indice = aux->valor;
+                    printf("|| SE SUBIRA UN NIVEL...\n");
+                }
+                else
+                {
+                    indice = 0;
+                    strcpy(di, "ROOT");
+                    printf("|| SE SUBIRA UN NIVEL...\n");
+                }
+            }
+            else
+            {
+                //AQUI SI QUIERO BUSCAR UNA RUTA EN ESPECIFICO
+                navegar(nav, indice, ambito, mbr, globalPath);
+                nodo *aux = pop(ambito);
+                if(aux->valor!=-1)
+                {
+                    //BUSCO CARPETA QUE TENGA COMO INITBLOCK EL VALOR DEL PUNTERO REAL BASADO EN EL INDICE ENCONTRADO
+                    indice = aux->valor;
+                }
+                else
+                {
+                    //DIGO QUE ES ERROR Y COMO COMO INDICE EL QUE NO TIENE ERROR
+                    printf("|| OCURRIO UN ERRO: RUTA NO VALIDA...\n");
+                    if(ambito->sz>1)
+                    {
+                        aux = pop(ambito);
+                        indice = aux->valor;
+                    }
+                    else
+                    {
+                        indice = 0;
+                        strcpy(di, "ROOT");
+                    }
+                }
+            }
+            buscaCarpetaParaAmbito(indice, globalPath, di);
+            //printList(ambito);
+            getchar();
         }
         else if(opc == 7)
         {
@@ -243,6 +299,14 @@ void menuMontado(MBR mbr)
             nameTablesReport();//ACTUAL
             printf("|| REPORTES GENERADOS EN CARPETA REPORTS\n");
             printf("|| Press any key to continue...");
+            getchar();
+        }
+        else if(opc == 8)
+        {
+            //LISTAR EL DIRECTORIO ACTUAL
+            system("clear");
+            int pt = mbr.mbr_t_names + (indice * sizeof(Data_nombre) * 10);
+            listarDirectorioActual(pt, globalPath);
             getchar();
         }
         system("clear");
@@ -493,9 +557,9 @@ void nameTablesReport()
 {
     FILE *f = fopen(globalPath, "r");
     FILE *txt = fopen("REPORTS/reporteTablaNombres.txt", "w");
-    fprintf(txt, "===================================================================================================================\n");
+    fprintf(txt, "=============================================================================================================================================================\n");
     fprintf(txt,"||  REPORTE TABLA DE NOMBRES DE DISCO: %s\n", globlaDiskPath);
-    fprintf(txt, "===================================================================================================================\n");
+    fprintf(txt, "=============================================================================================================================================================\n");
     MBR mbr;
     fread(&mbr, sizeof(MBR), 1, f);
     int x;
@@ -504,16 +568,16 @@ void nameTablesReport()
         int dispo = estaDisponibleTabla(mbr.mbr_t_names + (x*sizeof(Data_nombre)*10),globalPath);
         if(dispo == FALSE)
         {
-            fprintf(txt, "***********************************************************************************************************************\n");
-            fprintf(txt, "TABLA NO: %i\n", x);
-            fprintf(txt, "***********************************************************************************************************************\n");
+            int pt = mbr.mbr_t_names + (x * sizeof(Data_nombre)*10);
+            fprintf(txt, "******************************************************************************************************************************************************************\n");
+            fprintf(txt, "TABLA NO: %i || PUNTERO EN ARCHIVO: %i\n", x, pt);
+            fprintf(txt, "******************************************************************************************************************************************************************\n");
             escribeReporteNobres(x,txt,mbr,f);//OPERACIONES
-            fprintf(txt, "***********************************************************************************************************************\n");
+            fprintf(txt, "******************************************************************************************************************************************************************\n");
         }
     }
-    fprintf(txt, "===================================================================================================================\n");
+    fprintf(txt, "=============================================================================================================================================================\n");
     fclose(f);
     fclose(txt);
-
 }
 #endif // STRUCTS_201503476_C

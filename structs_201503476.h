@@ -3,6 +3,7 @@
 #include <cadenas_201503476.h>
 #include<operaciones_201503476.h>
 #include<componentes_201503476.h>
+#include<datastructure_201503476.h>
 #define DISK_LIMIT 10
 /* PROPOSITO DE ARCHIVO:
  * DEFINIR STRUCTS

@@ -96,7 +96,7 @@ void escribeReporteDeTabla(FILE *f, int PTiniti, FILE *lectura)
         if(aux.state == TRUE && aux.type!= BANDERA)
         {
             fprintf(f,"|| %i || NOMBRE: %s || FECHA: %s ",x, aux.name, aux.date);
-            if(aux.type == -1)
+            if(aux.type == CARPETA)
             {
                 fprintf(f,"|| TIPO: CARPETA ");
             }
