@@ -22,6 +22,12 @@ void buscaCarpetaParaAmbito(int indice, char rutaGlopb[], char mod[]);//ESTE MET
 void eliminar(MBR mbr, char rglob[], char rdiskGlobal[], int indice);
 //EDITAR
 void editar(MBR mbr, char rglob[], char rdiskGlobal[], int indice);
+//COPIAR
+void copiar(MBR mbr, char rglob[], char rdiskGlobal[], int indice);
+//REPORTE
+void generaReporteArchivos(MBR mbr, char rglob[], char rdiskGlobal[], int indice);
+//BUSCAR
+void buscar(MBR mbr, char rglob[]);
 /*-------------REPORTE DE NOMBRES ----------------------------------------*/
 void escribeReporteNobres(int x, FILE *f, MBR mbr, FILE *lee);
 /*-------------REPORTE DE NOMBRES ----------------------------------------*/
@@ -50,4 +56,9 @@ void traeInfoArchivo(int indice, char rutaglob[], MBR mbr, int tipoRuta, char ru
 int compruebaSiExisteEsteNombreEn(int tipoBuscado, MBR mbr, int indice, char rutaglob[], char nombreBuscado[]);
 int compruebaCompletExistenciaDe(int tipoBuscado, MBR mbr, int indice, char rutaglob[], char nombreFile[], int tipoRuta, char rutaCreacion[]);
 /*****************************************************************/
+int copiaElArchivo(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaSinDataNode[], char pathOrigen[], char nombre[], char pathDest[]);
+void recorreTabla(int indice, FILE *f, FILE *txt, MBR mbr, char rSinData[], char rutaGlobal[]);
+void buscaPadres(int puntero, char rutaGlob[], MBR mbr, char rutaFinal[]);
+Data_nombre buscaCarpetaPadre(MBR mbr, char rutaGlob[], int ptr);
+void buscarPorNombre(MBR mbr, char rutaGlob[], char nombre[]);
 #endif // OPERACIONES_201503476_H

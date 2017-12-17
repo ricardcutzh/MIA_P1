@@ -3,6 +3,8 @@
 #include<operaciones_201503476.h>
 #include<math.h>
 #include<time.h>
+char rutaAuxiliar[PATH_SIZE];
+
 
 void crear(MBR mbr, char rglob[], char rdiskGlobal[], int indiceTabla)
 {
@@ -192,6 +194,46 @@ void editar(MBR mbr, char rglob[], char rdiskGlobal[], int indice)
         }
     }
 
+}
+//COPIAR
+void copiar(MBR mbr, char rglob[], char rdiskGlobal[], int indice)
+{
+    int type = ARCHIVO;
+    printf("===============================================================\n");
+    printf("||                    COPIAR                                 ||\n");
+    printf("===============================================================\n");
+    printf("|| COPIAR DIRECTORIO (D) O ARCHIVO (A): >> ");
+    char tipo[2];
+    gets(tipo);
+    if(strcmp(tipo, "D")==0)
+    {
+        type = CARPETA;
+    }
+    printf("|| PATH ORIGEN: >> ");
+    char pathOrigin[PATH_SIZE];
+    gets(pathOrigin);
+    printf("|| NOMBRE: >> ");
+    char name[LINE_SIZE];
+    gets(name);
+    printf("|| PATH DESTINO: >> ");
+    char pathDest[PATH_SIZE];
+    gets(pathDest);
+    int comp1 = compruebaCompletExistenciaDe(type, mbr, indice, rglob, name, 2, pathOrigin);
+    int comp2 = devuelvemeIndiceDeRuta(indice, rglob, mbr, 2, pathDest);
+    if(comp1 == TRUE && comp2!=-1)//ES PORQUE SI EXISTE
+    {
+        if(type == ARCHIVO)
+        {
+            if(copiaElArchivo(indice, rglob, mbr, 2, rdiskGlobal, pathOrigin, name, pathDest)==TRUE)
+            {
+                printf("|| ARCHIVO COPIADO CON EXITO...\n");
+            }
+        }
+        else
+        {
+            //QUE SAD NO TENGO EL COPIAR DIRECTORIO :(
+        }
+    }
 }
 
 int creameCarpeta(MBR mbr, char rutaGlob[], char path[], int indice, int typeRoute, char name[])//ESTE RECIBE INDICE DE TABLA COMO UN ARREGLO (0,1,2...)
@@ -532,7 +574,7 @@ void navegar(char pathBuscar[], int indice, List *ambito, MBR mbr, char rutaGlob
             ban++;
         }
     }
-    printList(ambito);
+    //printList(ambito);
 }
 
 void buscaCarpetaParaAmbito(int indice, char rutaGlopb[], char mod[])
@@ -558,6 +600,48 @@ void buscaCarpetaParaAmbito(int indice, char rutaGlopb[], char mod[])
     }
 }
 
+void generaReporteArchivos(MBR mbr, char rglob[], char rdiskGlobal[], int indice)
+{
+     int x;
+     FILE *f = fopen(rglob, "r");
+     FILE *txt = fopen("REPORTS/ArchivosReporte.txt", "w");
+     fprintf(txt, "=================================================================================================================================================================\n");
+     fprintf(txt,"||  REPORTE TABLA DE ARCHIVOS DE DISCO: %s\n", rdiskGlobal);
+     fprintf(txt, "=================================================================================================================================================================\n");
+     //fprintf(txt, "                                                                                                                                                             \n");
+     //fprintf(txt,"******************************************************************************************************************************************************************\n");
+     for(x = 0; x< 1000; x++)
+     {
+         int dispo = estaDisponibleTabla(mbr.mbr_t_names + (x*sizeof(Data_nombre)*10),rglob);
+         if(dispo == FALSE)
+         {
+             int pt = mbr.mbr_t_names + (x * sizeof(Data_nombre)*10);
+
+             //fprintf(txt,"||                                       TABLA NO: %i || PUNTERO EN ARCHIVO: %i\n", x, pt);
+             //fprintf(txt,"******************************************************************************************************************************************************************\n");
+             //AQUI IMPRIMO INFORMACION POR TABLA
+             recorreTabla(x, f, txt, mbr,rdiskGlobal,rglob);
+             //fprintf(txt, "                                                                                                                                                             \n");
+             //fprintf(txt, "*****************************************************************************************************************************************************************\n");
+
+         }
+     }
+     fprintf(txt, "=================================================================================================================================================================\n");
+     fclose(f);
+     fclose(txt);
+}
+
+void buscar(MBR mbr, char rglob[])
+{
+    printf("|| BUSCAR: >> ");
+    char nombreBuscar[LINE_SIZE];
+    emptyArray(nombreBuscar);
+    gets(nombreBuscar);
+    printf("------------------------------------------------------------------------------------------------------\n");
+    buscarPorNombre(mbr, rglob, nombreBuscar);
+    printf("------------------------------------------------------------------------------------------------------\n");
+    getchar();
+}
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*/
 //ARCHIVOS MENEJO
 int countDiskDataNodes(MBR mbr, char ruta[])//RETORNA EL NUMERO DE DATANODES
@@ -1197,6 +1281,131 @@ int compruebaCompletExistenciaDe(int tipoBuscado, MBR mbr, int indice, char ruta
     else
     {
         return FALSE;
+    }
+}
+/*-------------------------------------------------------------------------------------------------------------------*/
+int copiaElArchivo(int indice, char rutaglob[], MBR mbr,int tipoRuta, char rutaSinDataNode[], char pathOrigen[], char nombre[], char pathDest[])
+{
+    indice = devuelvemeIndiceDeRuta(indice, rutaglob, mbr, tipoRuta, pathOrigen);
+    char contenido[500];
+    emptyArray(contenido);
+    traeInfoArchivo(indice, rutaglob, mbr, tipoRuta, pathOrigen, nombre, rutaSinDataNode, contenido);
+    int x;
+    char tempname[LINE_SIZE];
+    strcpy(tempname, nombre);
+    while (compruebaCompletExistenciaDe(ARCHIVO, mbr, indice, rutaglob, tempname, tipoRuta, pathDest)==TRUE)
+    {
+        x++;
+        char temp[LINE_SIZE];
+        sprintf(temp, "%d", x);
+        strcat(temp, tempname);
+        strcpy(tempname, temp);
+    }
+    int indice2 = devuelvemeIndiceDeRuta(indice, rutaglob, mbr, tipoRuta, pathDest);
+    escribeArchivo(indice2, rutaglob, mbr, contenido, tipoRuta, rutaSinDataNode, pathDest, tempname);
+    return TRUE;
+
+}
+void recorreTabla(int indice, FILE *f, FILE *txt, MBR mbr,char rSinData[], char rutaGlobal[])
+{
+    int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*10*indice);
+    int x;
+    for(x = 0; x<10; x++)
+    {
+        Data_nombre aux;
+        fseek(f, pt + (sizeof(Data_nombre)*x),SEEK_SET);
+        fread(&aux, sizeof(Data_nombre), 1, f);
+        if(aux.type == ARCHIVO && aux.state == TRUE)
+        {
+            char rutaPadres[PATH_SIZE] = "";
+            emptyArray(rutaAuxiliar);
+            buscaPadres(aux.padre, rutaGlobal, mbr, rutaPadres);
+            fprintf(txt, "=================================================================================================================================================================\n");
+            fprintf(txt, "|| * RUTA: %s || ARCHIVO: %s \n", rutaAuxiliar,aux.name);
+
+            //AQUI DEBERIA DE RECORRER LOS NODOS
+            int next = aux.init_block;
+            int node = aux.dnode;
+            while(next!=-1)
+            {
+                dataBlock temp = buscameDataBlock(rSinData, next, node);
+                fprintf(txt,"||    - NUMERO DE DATANODE: %i | CONTENIDO: %s\n", node, temp.bd_data);
+                next = temp.next;
+                node = temp.NdataNode;
+            }
+            fprintf(txt, "=================================================================================================================================================================\n");
+            fprintf(txt, "                                                                                                                                                             \n");
+        }
+
+    }
+}
+
+void buscaPadres(int puntero, char rutaGlob[], MBR mbr, char rutaFinal[])
+{
+    if(puntero!=mbr.mbr_t_names)
+    {
+        int indice = (puntero - mbr.mbr_t_names)/(sizeof(Data_nombre)*10);
+        emptyArray(rutaFinal);
+        char conatena[LINE_SIZE]="";
+
+        char tempo[LINE_SIZE];
+        buscaCarpetaParaAmbito(indice, rutaGlob, tempo);
+        strcat(conatena, tempo);
+        strcat(conatena, "/");
+        strcat(conatena, rutaFinal);
+        strcpy(rutaFinal, conatena);
+        strcat(conatena, rutaAuxiliar);
+        strcpy(rutaAuxiliar, conatena);
+        Data_nombre aux = buscaCarpetaPadre(mbr, rutaGlob, puntero);
+        buscaPadres(aux.padre, rutaGlob, mbr, rutaFinal);
+    }
+}
+
+Data_nombre buscaCarpetaPadre(MBR mbr, char rutaGlob[], int ptr)
+{
+    int x;
+    FILE *f = fopen(rutaGlob, "r");
+    Data_nombre ret;
+    if(f!=NULL)
+    {
+        fseek(f, mbr.mbr_t_names, SEEK_SET);
+        for(x = 0 ; x< 10000; x++)
+        {
+            Data_nombre temp;
+            fread(&temp, sizeof(Data_nombre),1,f);
+            if(temp.state == TRUE && temp.type == CARPETA && ptr == temp.init_block)
+            {
+                ret = temp;
+                break;
+            }
+        }
+        fclose(f);
+        return ret;
+    }
+    return ret;
+
+}
+
+void buscarPorNombre(MBR mbr, char rutaGlob[], char nombre[])
+{
+    FILE *f = fopen(rutaGlob, "r");
+    if(f!=NULL)
+    {
+        Data_nombre aux;
+        int x;
+        fseek(f, mbr.mbr_t_names, SEEK_SET);
+        for(x = 0; x< 10000; x++)
+        {
+            fread(&aux, sizeof(Data_nombre), 1, f);
+            if(aux.state == TRUE && strcmp(aux.name, nombre)==0)
+            {
+                emptyArray(rutaAuxiliar);
+                char temp[LINE_SIZE] = "";
+                buscaPadres(aux.padre, rutaGlob, mbr,temp);
+                printf("|| RUTA: %s || COINCIDENCIA: %s\n", rutaAuxiliar, aux.name);
+            }
+        }
+        fclose(f);
     }
 }
 #endif // OPERACIONES_201503476_C

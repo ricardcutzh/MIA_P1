@@ -213,7 +213,7 @@ void menuMontado(MBR mbr)
         printf("|| 6) NAVEGAR\n");
         printf("|| 7) REPORTES\n");
         printf("|| 8) LISTAR DIR ACTUAL\n");
-        printf("|| 9) DESMONTAR\n");
+        printf("|| 9) DESMONTAR DISCO\n");
         printf("====================================================================\n");
         printf("|| >> ");
         string entrada = nuevaCadena();
@@ -240,10 +240,14 @@ void menuMontado(MBR mbr)
         else if(opc == 4)
         {
             //PARA COPIAR
+            system("clear");
+            copiar(mbr, globalPath, globlaDiskPath, indice);
         }
         else if(opc == 5)
         {
             //PARA BUSCAR
+            system("clear");
+            buscar(mbr, globalPath);
         }
         else if(opc == 6)
         {
@@ -303,6 +307,7 @@ void menuMontado(MBR mbr)
             nameTablesReport();//ACTUAL
             diskDataNodeReport();
             printNodeTable(mbr.mbr_t_nodes, globalPath);
+            generaReporteArchivos(mbr, globalPath, globlaDiskPath, indice);
             printf("|| REPORTES GENERADOS EN CARPETA REPORTS\n");
             printf("|| Press any key to continue...");
             getchar();
