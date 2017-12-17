@@ -234,6 +234,8 @@ void menuMontado(MBR mbr)
         else if(opc == 3)
         {
             //PARA EDITAR
+            system("clear");
+            editar(mbr, globalPath, globlaDiskPath, indice);
         }
         else if(opc == 4)
         {

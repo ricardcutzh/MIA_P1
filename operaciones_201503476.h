@@ -45,5 +45,9 @@ void eliminaDataNombre(int PTinit, char nombre[], char rutaglob[]);
 void eliminaCarpeta(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[], char nombreFile[], char rutaSinDataNode[]);
 void eliminaContenidoCarpeta(int indice , char rutaglob[], MBR mbr, char rutaSinData[]);
 /*************************************************************************************/
+int editaElArchivo(int indice, char rutaglob[], MBR mbr, char nuevaInfo[], int tipoRuta, char rutaSinDataNode[], char rutaCreacion[], char nombre[], int tipoOperacion);
+void traeInfoArchivo(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[], char nombreFile[], char rutaSinDataNode[], char tempo[]);
+int compruebaSiExisteEsteNombreEn(int tipoBuscado, MBR mbr, int indice, char rutaglob[], char nombreBuscado[]);
+int compruebaCompletExistenciaDe(int tipoBuscado, MBR mbr, int indice, char rutaglob[], char nombreFile[], int tipoRuta, char rutaCreacion[]);
 /*****************************************************************/
 #endif // OPERACIONES_201503476_H

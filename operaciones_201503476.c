@@ -27,34 +27,56 @@ void crear(MBR mbr, char rglob[], char rdiskGlobal[], int indiceTabla)
     {
         type = 2;//SI LA RUTA ES ABSOLUTLA
     }
+
     if(strcmp(tipo, "A")==0)//TIPO DE FILE
     {
         //ARCHIVO
-        printf("|| CONTENIDO DEL ARCHIVO: >> ");
-        char con[500];//cantidad de caracteres del mensaje
-        gets(con);
-        int res = escribeArchivo(indiceTabla, rglob, mbr, con, type, rdiskGlobal, p,name);
-        if(res == TRUE)
+        if(compruebaCompletExistenciaDe(ARCHIVO,mbr, indiceTabla, rglob, name, type, p)==FALSE)
         {
-            printf("|| ARCHIVO CREADO CON EXITO!\n");
+            printf("|| CONTENIDO DEL ARCHIVO: >> ");
+            char con[500];//cantidad de caracteres del mensaje
+            gets(con);
+            int res = escribeArchivo(indiceTabla, rglob, mbr, con, type, rdiskGlobal, p,name);
+            if(res == TRUE)
+            {
+                printf("|| ARCHIVO CREADO CON EXITO!\n");
+                getchar();
+            }
+            else
+            {
+                printf("|| OCURRIO UN ERROR PORFAVOR COMPRUEBE EL PATH QUE INDICO\n");
+                getchar();
+            }
+        }
+        else
+        {
+            printf("|| OCURRIO UN ERROR , AL PARECER DESEA CREAR UN ARCHIVO QUE YA EXISTE EN EL PATH INDICADO\n");
             getchar();
         }
+
     }
     else if(strcmp(tipo, "D")==0)
     {
         //CARPETA
-        int res = creameCarpeta(mbr,rglob, p, indiceTabla, type, name);
-        if(res == TRUE)
+        if(compruebaCompletExistenciaDe(CARPETA,mbr, indiceTabla, rglob, name, type, p)==FALSE)
         {
-            printf("|| CARPETA CREADA CON EXITO!\n");
-            getchar();
+            int res = creameCarpeta(mbr,rglob, p, indiceTabla, type, name);
+            if(res == TRUE)
+            {
+                printf("|| CARPETA CREADA CON EXITO!\n");
+                getchar();
+            }
+            else
+            {
+                printf("|| OCURRIO UN ERROR PORFAVOR COMPRUEBE EL PATH QUE INDICO\n");
+                getchar();
+            }
         }
         else
         {
-            printf("|| OCURRIO UN ERROR PORFAVOR COMPRUEBE EL PATH QUE INDICO\n");
+            printf("|| ESTA CARPETA YA EXISTE EN EL DIRECTORIO INDICADO...\n");
             getchar();
         }
-
     }
     printf("===============================================================\n");
 }
@@ -100,7 +122,76 @@ void editar(MBR mbr, char rglob[], char rdiskGlobal[], int indice)
     printf("===============================================================\n");
     printf("||                     EDITAR ARCHIVOS                       ||\n");
     printf("===============================================================\n");
-    printf("|| TIPO DIRECTORIO(D) O ARCHIVO: (A): >> ");
+    printf("|| AGREGAR (M) O SOBREESCRIBIR (S): >> ");
+    char ope[2];
+    gets(ope);
+    printf("|| TIPO DE RUTA RELATIVA(R) O ABSOLUTA(A): >> ");
+    char tipoR[2];
+    gets(tipoR);
+    printf("|| NOMBRE: >> ");
+    char name[LINE_SIZE];
+    gets(name);
+    printf("|| RUTA: >> ");
+    char p[PATH_SIZE];
+    gets(p);
+    int type = 1;//RELATIVA
+    if(strcmp(tipoR, "A")==0)//TIPO DE RUTA
+    {
+        type = 2;//SI LA RUTA ES ABSOLUTLA
+    }
+    int opera = 2;//OVERWRITE
+    if(strcmp(ope, "M")==0)
+    {
+        opera = 1;
+        if(compruebaCompletExistenciaDe(ARCHIVO,mbr, indice, rglob, name, type, p)==TRUE)
+        {
+            printf("=====================================================================================================\n");
+            buscaContenidoDeArchivo(indice, rglob, mbr, type, p, name, rdiskGlobal);
+            printf("=====================================================================================================\n");
+            printf("|| NUEVO CONTENIDO >> ");
+            char nuevainfo[PATH_SIZE]="";
+            gets(nuevainfo);
+            int res = editaElArchivo(indice, rglob, mbr, nuevainfo, type, rdiskGlobal, p, name, opera);
+            if(res == TRUE)
+            {
+                printf("|| ARCHIVO EDITADO CORRECTAMENTE! \n");
+            }
+            else {
+                printf("|| ERROR EN PATH \n");
+            }
+            getchar();
+        }
+        else
+        {
+            printf("|| ERROR EN PATH \n");
+            getchar();
+        }
+    }
+    else if(opera == 2)
+    {
+
+        if(compruebaCompletExistenciaDe(ARCHIVO, mbr, indice, rglob, name, type, p)==TRUE)
+        {
+            printf("|| NUEVO CONTENIDO QUE REEMPLAZA AL VIEJO >> ");
+            char nuevainfo[PATH_SIZE]="";
+            gets(nuevainfo);
+            int res = editaElArchivo(indice, rglob, mbr, nuevainfo, type, rdiskGlobal, p, name, opera);
+            if(res == TRUE)
+            {
+                printf("|| ARCHIVO SOBREESCRITO CORRECTAMENTE! \n");
+            }
+            else {
+                printf("|| ERROR EN PATH \n");
+            }
+            getchar();
+        }
+        else
+        {
+            printf("|| ERROR EN PATH \n");
+            getchar();
+        }
+    }
+
 }
 
 int creameCarpeta(MBR mbr, char rutaGlob[], char path[], int indice, int typeRoute, char name[])//ESTE RECIBE INDICE DE TABLA COMO UN ARREGLO (0,1,2...)
@@ -897,62 +988,84 @@ void buscaContenidoDeArchivo(int indice, char rutaglob[], MBR mbr, int tipoRuta,
 {
     //ENCONTRARE EL INDICE INDICADO
     indice = devuelvemeIndiceDeRuta(indice, rutaglob, mbr, tipoRuta, rutaCreacion);
-
-    //ENCUENTRO EL DATANOMBRE QUE BUSCO
-    int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*indice*10);
-    Data_nombre auxi = buscaDataNombre(pt, nombreFile, rutaglob);
-    int next = auxi.init_block;
-    int node = auxi.dnode;
-    char contenido[200];//CONTENIDO
-    emptyArray(contenido);
-    while(next!=-1)
+    if(indice != -1 && compruebaSiExisteEsteNombreEn(ARCHIVO, mbr, indice, rutaglob,nombreFile)==TRUE)
     {
-        dataBlock temp = buscameDataBlock(rutaSinDataNode, next, node);
-        strcat(contenido, temp.bd_data);
-        next = temp.next;
-        node = temp.NdataNode;
+        //ENCUENTRO EL DATANOMBRE QUE BUSCO
+        int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*indice*10);
+        Data_nombre auxi = buscaDataNombre(pt, nombreFile, rutaglob);
+        int next = auxi.init_block;
+        int node = auxi.dnode;
+        char contenido[500];//CONTENIDO
+        emptyArray(contenido);
+        while(next!=-1)
+        {
+            dataBlock temp = buscameDataBlock(rutaSinDataNode, next, node);
+            strcat(contenido, temp.bd_data);
+            next = temp.next;
+            node = temp.NdataNode;
+        }
+        printf("|| CONTENIDO DE ARCHIVO: %s\n", contenido);
+        getchar();
     }
-    printf("|| CONTENIDO DE ARCHIVO: %s\n", contenido);
-    getchar();
+    else
+    {
+        printf("|| ERROR EN EL PATH... \n");
+        getchar();
+    }
+
     //
 }
 void eliminaArchivo(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[], char nombreFile[], char rutaSinDataNode[])
 {
     //ENCONTRARE EL INDICE INDICADO
-    indice = devuelvemeIndiceDeRuta(indice, rutaglob, mbr, tipoRuta, rutaCreacion);
-
-    //ENCUENTRO EL DATANOMBRE QUE BUSCO
-    int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*indice*10);
-    Data_nombre auxi = buscaDataNombre(pt, nombreFile, rutaglob);
-    int next = auxi.init_block;
-    int node = auxi.dnode;
-    while(next!=-1)
+    indice = devuelvemeIndiceDeRuta(indice, rutaglob, mbr, tipoRuta, rutaCreacion);  
+    if(indice!=-1 && compruebaSiExisteEsteNombreEn(ARCHIVO, mbr, indice, rutaglob,nombreFile)==TRUE)
     {
-        dataBlock temp = buscameDataBlock(rutaSinDataNode, next, node);
-        eliminaDataBlock(rutaSinDataNode, next, node);
-        next = temp.next;
-        node = temp.NdataNode;
+        //ENCUENTRO EL DATANOMBRE QUE BUSCO
+        int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*indice*10);
+        Data_nombre auxi = buscaDataNombre(pt, nombreFile, rutaglob);
+        int next = auxi.init_block;
+        int node = auxi.dnode;
+        while(next!=-1)
+        {
+            dataBlock temp = buscameDataBlock(rutaSinDataNode, next, node);
+            eliminaDataBlock(rutaSinDataNode, next, node);
+            next = temp.next;
+            node = temp.NdataNode;
 
+        }
+        eliminaDataNombre(pt, nombreFile, rutaglob);
+        printf("|| ARCHIVO ELIMINADO.... \n");
+        getchar();
     }
-    eliminaDataNombre(pt, nombreFile, rutaglob);
-    printf("|| ARCHIVO ELIMINADO.... \n");
-    getchar();
+    else
+    {
+        printf("|| OCURRIO UN ERROR CON EL PATH INDICADO \n");
+        getchar();
+    }
 }
 void eliminaCarpeta(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[], char nombreFile[], char rutaSinDataNode[])
 {
     //ENCONTRAR EL INDICE INDICADO
     indice = devuelvemeIndiceDeRuta(indice, rutaglob, mbr, tipoRuta, rutaCreacion);
+    if(indice!=-1 && compruebaSiExisteEsteNombreEn(CARPETA, mbr, indice, rutaglob,nombreFile)==TRUE)
+    {
+        //ENTCONTRAR EL DATANOMBRE QUE BUSCO
+        int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*indice*10);
+        Data_nombre auxi = buscaDataNombre(pt,nombreFile, rutaglob);
 
-    //ENTCONTRAR EL DATANOMBRE QUE BUSCO
-    int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*indice*10);
-    Data_nombre auxi = buscaDataNombre(pt,nombreFile, rutaglob);
-
-    //AQUI YA OBTENGO SU PUNTERO PARA PODER ELIMINARLO EN EL METODO DE ELIMINAR TODO LO QUE TIENE
-    int nIndice = (auxi.init_block-mbr.mbr_t_names)/(sizeof(Data_nombre)*10);
-    eliminaContenidoCarpeta(nIndice, rutaglob, mbr, rutaSinDataNode);
-    eliminaDataNombre(pt, auxi.name, rutaglob);
-    printf("|| DIRECTORIO Y SUBDIRECTORIOS ELIMINADOS...\n");
-    getchar();
+        //AQUI YA OBTENGO SU PUNTERO PARA PODER ELIMINARLO EN EL METODO DE ELIMINAR TODO LO QUE TIENE
+        int nIndice = (auxi.init_block-mbr.mbr_t_names)/(sizeof(Data_nombre)*10);
+        eliminaContenidoCarpeta(nIndice, rutaglob, mbr, rutaSinDataNode);
+        eliminaDataNombre(pt, auxi.name, rutaglob);
+        printf("|| DIRECTORIO Y SUBDIRECTORIOS ELIMINADOS...\n");
+        getchar();
+    }
+    else
+    {
+        printf("|| OCURRIO UN ERROR CON EL PATH INDICADO \n");
+        getchar();
+    }
 }
 
 void eliminaContenidoCarpeta(int indice, char rutaglob[], MBR mbr, char rutaSinData[])
@@ -997,5 +1110,93 @@ void eliminaContenidoCarpeta(int indice, char rutaglob[], MBR mbr, char rutaSinD
     }
 }
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*/
+int editaElArchivo(int indice, char rutaglob[], MBR mbr, char nuevaInfo[], int tipoRuta, char rutaSinDataNode[], char rutaCreacion[], char nombre[], int tipoOperacion)
+{
+    if(compruebaCompletExistenciaDe(ARCHIVO, mbr, indice, rutaglob, nombre,tipoRuta, rutaCreacion)==TRUE)
+    {
+        if(tipoOperacion == 1)
+        {
+            //APPEND
+            //TARIGO LA INFORMACION QUE PUEDO GUARDAR
+            char info[500];
+            traeInfoArchivo(indice, rutaglob, mbr, tipoRuta, rutaCreacion, nombre, rutaSinDataNode,info);
+            //ELIMINO EL ARCHIVO
+            eliminaArchivo(indice, rutaglob, mbr, tipoRuta, rutaCreacion, nombre, rutaSinDataNode);
+            strcat(info, " ");
+            strcat(info, nuevaInfo);
+            //VUELVO A ESCRIBIR EL ARCHIVO
+            escribeArchivo(indice, rutaglob, mbr, info, tipoRuta, rutaSinDataNode, rutaCreacion, nombre);
+            return TRUE;
+        }
+        else
+        {
+            //OVERWRITE
+            //ELIMINO EL ARCHIVO
+            eliminaArchivo(indice, rutaglob, mbr, tipoRuta, rutaCreacion, nombre, rutaSinDataNode);
+            //ESCRIBO DE NUEVO
+            escribeArchivo(indice, rutaglob, mbr, nuevaInfo, tipoRuta, rutaSinDataNode, rutaCreacion, nombre);
+            return TRUE;
+        }
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
 
+}
+void traeInfoArchivo(int indice, char rutaglob[], MBR mbr, int tipoRuta, char rutaCreacion[], char nombreFile[], char rutaSinDataNode[], char tempo[])
+{
+    indice = devuelvemeIndiceDeRuta(indice, rutaglob, mbr, tipoRuta, rutaCreacion);
+    if(indice!=-1 && compruebaSiExisteEsteNombreEn(ARCHIVO, mbr, indice, rutaglob,nombreFile)==TRUE)
+    {
+        int pt = mbr.mbr_t_names + (sizeof(Data_nombre)*indice*10);
+        Data_nombre auxi = buscaDataNombre(pt, nombreFile, rutaglob);
+        int next = auxi.init_block;
+        int node = auxi.dnode;
+        emptyArray(tempo);
+        while(next!=-1)
+        {
+            dataBlock temp = buscameDataBlock(rutaSinDataNode, next, node);
+            strcat(tempo, temp.bd_data);
+            next = temp.next;
+            node = temp.NdataNode;
+        }
+    }
+}
+int compruebaSiExisteEsteNombreEn(int tipoBuscado, MBR mbr, int indice, char rutaglob[], char nombreBuscado[])
+{
+    int pt = mbr.mbr_t_names + (indice * 10 * sizeof(Data_nombre));
+    int ban = FALSE;
+    FILE *f = fopen(rutaglob, "r");
+    if(f!=NULL)
+    {
+        int x;
+        Data_nombre aux;
+        for(x = 0; x < 10 ; x++)
+        {
+            fseek(f, pt + (x*sizeof(Data_nombre)),SEEK_SET);
+            fread(&aux, sizeof(Data_nombre), 1, f);
+            if(aux.state == TRUE && aux.type == tipoBuscado && strcmp(nombreBuscado, aux.name)==0)
+            {
+                ban = TRUE;
+                break;
+            }
+        }
+        fclose(f);
+        return ban;
+    }
+}
+int compruebaCompletExistenciaDe(int tipoBuscado, MBR mbr, int indice, char rutaglob[], char nombreFile[], int tipoRuta, char rutaCreacion[])
+{
+    indice = devuelvemeIndiceDeRuta(indice, rutaglob, mbr, tipoRuta, rutaCreacion);
+    if(indice!=-1 && compruebaSiExisteEsteNombreEn(tipoBuscado, mbr, indice, rutaglob,nombreFile)==TRUE)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
 #endif // OPERACIONES_201503476_C
