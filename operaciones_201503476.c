@@ -637,6 +637,7 @@ void buscar(MBR mbr, char rglob[])
     char nombreBuscar[LINE_SIZE];
     emptyArray(nombreBuscar);
     gets(nombreBuscar);
+    pasameAMinuscula(nombreBuscar);
     printf("------------------------------------------------------------------------------------------------------\n");
     buscarPorNombre(mbr, rglob, nombreBuscar);
     printf("------------------------------------------------------------------------------------------------------\n");
@@ -1397,7 +1398,11 @@ void buscarPorNombre(MBR mbr, char rutaGlob[], char nombre[])
         for(x = 0; x< 10000; x++)
         {
             fread(&aux, sizeof(Data_nombre), 1, f);
-            if(aux.state == TRUE && strcmp(aux.name, nombre)==0)
+            char temp2[LINE_SIZE];
+            strcpy(temp2, aux.name);
+            pasameAMinuscula(temp2);
+            int ver = strstr(temp2, nombre);
+            if(aux.state == TRUE && ver!=0)
             {
                 emptyArray(rutaAuxiliar);
                 char temp[LINE_SIZE] = "";
